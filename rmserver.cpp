@@ -26,57 +26,65 @@
   POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------------------------------
    Project name : IoT Tracker Server
-   File name    : sslserver.h
+   File name    : rmserver.cpp
    Created      : 12 March 2018
    Author(s)    : Jonathan Bagg
 ---------------------------------------------------------------------------------------------------
-   Simple secure TCP socket server
+   Simple secure TCP socket server for the remote monitors to connect to.
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
-#ifndef SSLSERVER_H
-#define SSLSERVER_H
-
-#include <QTcpServer>
-#include <QTimer>
-#include <QFile>
-#include <QSslKey>
-#include <QSslCertificate>
 #include <QSslSocket>
-#include <QThread>
-#include <QMutex>
-#include "global.h"
 #include "rmserver.h"
-#include "client.h"
-#include "sslserverworker.h"
-#include "record.h"
 
-class SslServerThread;
-
-class SslServer : public QTcpServer
+RemoteMonitorServer::RemoteMonitorServer(QObject *parent) : QTcpServer(parent)
 {
-	Q_OBJECT
+	QFile keyFile("red_local.key");
+	keyFile.open(QIODevice::ReadOnly);
+	key = QSslKey(keyFile.readAll(), QSsl::Rsa);
+	keyFile.close();
 
-public:
-	SslServer(QObject *parent = nullptr);
-	QSslKey key;
-	QSslCertificate cert;
-	QList<QSslCertificate> caCert;
-	QHash <size_t, Record*> records;
-	QMutex recordLocker;
+	QFile certFile("red_local.pem");
+	certFile.open(QIODevice::ReadOnly);
+	cert = QSslCertificate(certFile.readAll());
+	certFile.close();
 
-private:
-	QThread threads[THREADS];
-	SslServerWorker *workers[THREADS];
-	RemoteMonitorServer *rmServer;
-	size_t dispatchId;
-	QTimer oneSec;
-	int32_t serves;
+	if (!listen(QHostAddress::Any, RM_PORT)) {
+		qCritical() << "Unable to start the TCP server";
+		exit(1);
+	}
 
-private slots:
-	void measure();
+	zeroConf.startServicePublish("IoT-Tracker", "_iot_tracker._tcp", "", RM_PORT);
+}
 
-protected:
-	void incomingConnection(qintptr socketDescriptor);
-};
+void RemoteMonitorServer::incomingConnection(qintptr socketDescriptor)
+{
+	RemoteMonitorClient *client;
+	QSslSocket *sslSocket = new QSslSocket(this);
 
-#endif // SSLSERVER_H
+	connect(sslSocket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
+	sslSocket->setSocketDescriptor(socketDescriptor);
+	sslSocket->setPrivateKey(key);
+	sslSocket->setLocalCertificate(cert);
+	sslSocket->setCaCertificates(caCert);
+	sslSocket->setPeerVerifyMode(QSslSocket::VerifyNone);
+	sslSocket->startServerEncryption();
+
+	//addPendingConnection(sslSocket);
+	client = new RemoteMonitorClient(sslSocket, *this);
+	clients.append(client);
+}
+
+void RemoteMonitorServer::sslErrors(const QList<QSslError> &errors)
+{
+	foreach (const QSslError &error, errors) {
+		qDebug() << error.errorString();
+	}
+}
+
+void RemoteMonitorServer::updateClientsCPS(ssize_t cps)
+{
+	QByteArray cpsValue = QString("cps=%1\n").arg(cps).toUtf8();
+
+	foreach (RemoteMonitorClient *client, clients)
+		client->write(cpsValue);
+}

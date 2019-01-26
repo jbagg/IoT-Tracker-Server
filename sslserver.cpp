@@ -59,10 +59,12 @@ SslServer::SslServer(QObject *parent) : QTcpServer(parent)
 		threads[i].start();
 	}
 
-	if (!listen(QHostAddress::Any, PORT)) {
+	if (!listen(QHostAddress::Any, IOT_PORT)) {
 		qCritical() << "Unable to start the TCP server";
 		exit(1);
 	}
+
+	rmServer = new RemoteMonitorServer();
 
 	connect(&oneSec, &QTimer::timeout, this, &SslServer::measure);
 	oneSec.start(1000);
@@ -71,6 +73,7 @@ SslServer::SslServer(QObject *parent) : QTcpServer(parent)
 void SslServer::measure()
 {
 	qDebug() << serves << records.size();
+	rmServer->updateClientsCPS(serves);
 	serves = 0;
 }
 

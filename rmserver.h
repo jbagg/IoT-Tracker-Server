@@ -26,57 +26,48 @@
   POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------------------------------
    Project name : IoT Tracker Server
-   File name    : sslserver.h
+   File name    : rmserver.h
    Created      : 12 March 2018
    Author(s)    : Jonathan Bagg
 ---------------------------------------------------------------------------------------------------
-   Simple secure TCP socket server
+   Simple secure TCP socket server for the remote monitors to connect to.
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
-#ifndef SSLSERVER_H
-#define SSLSERVER_H
+#ifndef RMSERVER_H
+#define RMSERVER_H
 
 #include <QTcpServer>
-#include <QTimer>
 #include <QFile>
 #include <QSslKey>
 #include <QSslCertificate>
 #include <QSslSocket>
-#include <QThread>
-#include <QMutex>
+#include <QtZeroConf/qzeroconf.h>
 #include "global.h"
-#include "rmserver.h"
-#include "client.h"
-#include "sslserverworker.h"
-#include "record.h"
+#include "rmclient.h"
 
-class SslServerThread;
 
-class SslServer : public QTcpServer
+
+class RemoteMonitorServer : public QTcpServer
 {
 	Q_OBJECT
 
 public:
-	SslServer(QObject *parent = nullptr);
+	RemoteMonitorServer(QObject *parent = nullptr);
+	inline void removeClient(RemoteMonitorClient *client) {clients.removeAt(clients.indexOf(client));}
+	void updateClientsCPS(ssize_t cps);
+
+private:
+	QZeroConf zeroConf;
 	QSslKey key;
 	QSslCertificate cert;
 	QList<QSslCertificate> caCert;
-	QHash <size_t, Record*> records;
-	QMutex recordLocker;
-
-private:
-	QThread threads[THREADS];
-	SslServerWorker *workers[THREADS];
-	RemoteMonitorServer *rmServer;
-	size_t dispatchId;
-	QTimer oneSec;
-	int32_t serves;
+	QList <RemoteMonitorClient *> clients;
 
 private slots:
-	void measure();
+	void sslErrors(const QList<QSslError> &errors);
 
 protected:
 	void incomingConnection(qintptr socketDescriptor);
 };
 
-#endif // SSLSERVER_H
+#endif // RMSERVER_H

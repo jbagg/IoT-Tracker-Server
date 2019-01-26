@@ -1,6 +1,6 @@
 /**************************************************************************************************
 ---------------------------------------------------------------------------------------------------
-	Copyright (c) 2018-2019, Jonathan Bagg
+	Copyright (c) 2015-2019, Jonathan Bagg
 	All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -26,57 +26,35 @@
   POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------------------------------
    Project name : IoT Tracker Server
-   File name    : sslserver.h
-   Created      : 12 March 2018
+   File name    : rmclient.h
+   Created      : 01 June 2015
    Author(s)    : Jonathan Bagg
 ---------------------------------------------------------------------------------------------------
-   Simple secure TCP socket server
+   Object to handle connected remote monitoring clients.
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
-#ifndef SSLSERVER_H
-#define SSLSERVER_H
+#ifndef RMCLIENT_H_
+#define RMCLIENT_H_
 
-#include <QTcpServer>
-#include <QTimer>
-#include <QFile>
-#include <QSslKey>
-#include <QSslCertificate>
 #include <QSslSocket>
-#include <QThread>
-#include <QMutex>
-#include "global.h"
-#include "rmserver.h"
-#include "client.h"
-#include "sslserverworker.h"
-#include "record.h"
 
-class SslServerThread;
+class RemoteMonitorServer;
 
-class SslServer : public QTcpServer
+class RemoteMonitorClient : public QObject
 {
 	Q_OBJECT
 
 public:
-	SslServer(QObject *parent = nullptr);
-	QSslKey key;
-	QSslCertificate cert;
-	QList<QSslCertificate> caCert;
-	QHash <size_t, Record*> records;
-	QMutex recordLocker;
+	RemoteMonitorClient(QSslSocket *newConnection, RemoteMonitorServer &server);
+	inline void write(const char *value) {socket->write(value);}
 
 private:
-	QThread threads[THREADS];
-	SslServerWorker *workers[THREADS];
-	RemoteMonitorServer *rmServer;
-	size_t dispatchId;
-	QTimer oneSec;
-	int32_t serves;
+	QSslSocket *socket;
+	RemoteMonitorServer &server;
 
 private slots:
-	void measure();
+	void disconnect(void);
 
-protected:
-	void incomingConnection(qintptr socketDescriptor);
 };
 
-#endif // SSLSERVER_H
+#endif /* RMCLIENT_H_ */
