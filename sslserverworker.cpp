@@ -43,7 +43,6 @@ SslServerWorker::SslServerWorker(SslServer &server) : server(server)
 
 void SslServerWorker::newConnection(qintptr socketDescriptor)
 {
-	Client *client;
 	QSslSocket *sslSocket = new QSslSocket(this);
 
 	sslSocket->setSocketDescriptor(socketDescriptor);
@@ -60,9 +59,7 @@ void SslServerWorker::newConnection(qintptr socketDescriptor)
 	sslSocket->startServerEncryption();
 #endif
 
-	client = new Client(*this, sslSocket, server);
-	clients.append(client);
-	//qDebug() << clients.size();
+	new Client(*this, sslSocket, server);
 }
 
 void SslServerWorker::sslErrors(const QList<QSslError> &errors)

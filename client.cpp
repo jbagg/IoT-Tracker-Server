@@ -116,7 +116,6 @@ void Client::report24hrs()
 
 void Client::disconnect(void)
 {
-	serverWorker.removeClient(this);
 	socket->deleteLater();
 	delete this;	
 }

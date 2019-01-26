@@ -48,12 +48,10 @@ class SslServerWorker : public QObject
 
 public:
 	SslServerWorker(SslServer &server);
-	inline void removeClient(Client *client) {clients.removeAt(clients.indexOf(client));}
 	Q_INVOKABLE void newConnection(qintptr socketDescriptor);
 
 private:
 	SslServer &server;
-	QList <Client *> clients;
 
 private slots:
 	void sslErrors(const QList<QSslError> &errors);
