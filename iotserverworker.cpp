@@ -26,22 +26,22 @@
   POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------------------------------
    Project name : IoT Tracker Server
-   File name    : sslserverworker.cpp
+   File name    : iotserverworker.cpp
    Created      : 22 Jan 2019
    Author(s)    : Jonathan Bagg
 ---------------------------------------------------------------------------------------------------
    Object to handle connections in each thread
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
-#include "sslserver.h"
-#include "sslserverworker.h"
+#include "iotserver.h"
+#include "iotserverworker.h"
 
-SslServerWorker::SslServerWorker(SslServer &server) : server(server)
+IoTServerWorker::IoTServerWorker(IoTServer &server) : server(server)
 {
 
 }
 
-void SslServerWorker::newConnection(qintptr socketDescriptor)
+void IoTServerWorker::newConnection(qintptr socketDescriptor)
 {
 	QSslSocket *sslSocket = new QSslSocket(this);
 
@@ -59,10 +59,10 @@ void SslServerWorker::newConnection(qintptr socketDescriptor)
 	sslSocket->startServerEncryption();
 #endif
 
-	new Client(*this, sslSocket, server);
+	new IotClient(*this, sslSocket, server);
 }
 
-void SslServerWorker::sslErrors(const QList<QSslError> &errors)
+void IoTServerWorker::sslErrors(const QList<QSslError> &errors)
 {
 	foreach (const QSslError &error, errors) {
 		qDebug() << error.errorString();

@@ -26,63 +26,57 @@
   POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------------------------------
    Project name : IoT Tracker Server
-   File name    : sslserver.cpp
+   File name    : iotserver.h
    Created      : 12 March 2018
    Author(s)    : Jonathan Bagg
 ---------------------------------------------------------------------------------------------------
    Simple secure TCP socket server
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
+#ifndef IOTSERVER_H
+#define IOTSERVER_H
+
+#include <QTcpServer>
+#include <QTimer>
+#include <QFile>
+#include <QSslKey>
+#include <QSslCertificate>
 #include <QSslSocket>
-#include "sslserver.h"
+#include <QThread>
+#include <QMutex>
+#include "global.h"
+#include "rmserver.h"
+#include "iotclient.h"
+#include "iotserverworker.h"
+#include "record.h"
 
-SslServer::SslServer(QObject *parent) : QTcpServer(parent)
+class IoTServerThread;
+
+class IoTServer : public QTcpServer
 {
-	dispatchId = 0;
-	qRegisterMetaType<qintptr>("qintptr");
+	Q_OBJECT
 
-	QFile keyFile("red_local.key");
-	keyFile.open(QIODevice::ReadOnly);
-	key = QSslKey(keyFile.readAll(), QSsl::Rsa);
-	keyFile.close();
+public:
+	IoTServer(QObject *parent = nullptr);
+	QSslKey key;
+	QSslCertificate cert;
+	QList<QSslCertificate> caCert;
+	QHash <size_t, Record*> records;
+	QMutex recordLocker;
 
-	QFile certFile("red_local.pem");
-	certFile.open(QIODevice::ReadOnly);
-	cert = QSslCertificate(certFile.readAll());
-	certFile.close();
+private:
+	QThread threads[THREADS];
+	IoTServerWorker *workers[THREADS];
+	RemoteMonitorServer *rmServer;
+	size_t dispatchId;
+	QTimer oneSec;
+	int32_t serves;
 
-	size_t i;
-	for (i=0; i<THREADS; i++)
-	{
-		workers[i] = new SslServerWorker(*this);
-		workers[i]->moveToThread(&threads[i]);
-		threads[i].start();
-	}
+private slots:
+	void measure();
 
-	if (!listen(QHostAddress::Any, IOT_PORT)) {
-		qCritical() << "Unable to start the TCP server";
-		exit(1);
-	}
+protected:
+	void incomingConnection(qintptr socketDescriptor);
+};
 
-	rmServer = new RemoteMonitorServer();
-
-	connect(&oneSec, &QTimer::timeout, this, &SslServer::measure);
-	oneSec.start(1000);
-}
-
-void SslServer::measure()
-{
-	qDebug() << serves << records.size();
-	rmServer->updateClientsCPS(serves);
-	serves = 0;
-}
-
-void SslServer::incomingConnection(qintptr socketDescriptor)
-{
-	serves++;
-	QMetaObject::invokeMethod(workers[dispatchId], "newConnection", Q_ARG(qintptr, socketDescriptor));
-	dispatchId++;
-	if (dispatchId >= THREADS)
-		dispatchId = 0;
-}
-
+#endif // IOTSERVER_H

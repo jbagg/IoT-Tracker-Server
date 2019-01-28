@@ -34,7 +34,7 @@
 #include <QDebug>
 #include <QCoreApplication>
 #include <QStringList>
-#include "sslserver.h"
+#include "iotserver.h"
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	SslServer server;
+	IoTServer server;
 
 	return app.exec();
 }

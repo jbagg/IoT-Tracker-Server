@@ -1,6 +1,6 @@
 /**************************************************************************************************
 ---------------------------------------------------------------------------------------------------
-	Copyright (c) 2015-2019, Jonathan Bagg
+	Copyright (c) 2019, Jonathan Bagg
 	All rights reserved.
 
 	 Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -26,46 +26,37 @@
   POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------------------------------
    Project name : IoT Tracker Server
-   File name    : client.h
-   Created      : 01 June 2015
+   File name    : iotserverworker.h
+   Created      : 22 Jan 2019
    Author(s)    : Jonathan Bagg
 ---------------------------------------------------------------------------------------------------
-   Object to handle connected clients.
+   Object to handle connections in each thread
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
-#ifndef CLIENT_H_
-#define CLIENT_H_
+#ifndef IOTSERVERWORKER_H
+#define IOTSERVERWORKER_H
 
-#include <QSslSocket>
-#include "sslserverworker.h"
+#include <QObject>
+#include "iotclient.h"
 
-class SslServerWorker;
-class SslServer;
+class IoTServer;
+class IotClient;
 
-class Client : public QObject
+class IoTServerWorker : public QObject
 {
 	Q_OBJECT
 
 public:
-	Client(SslServerWorker &parent, QSslSocket *newConnection, SslServer &server);
-	inline void write(const char *value) {socket->write(value);}
+	IoTServerWorker(IoTServer &server);
+	Q_INVOKABLE void newConnection(qintptr socketDescriptor);
 
 private:
-	void reportBoot();
-	void report24hrs();
-	SslServer &server;
-	SslServerWorker &serverWorker;
-	QSslSocket *socket;
-	void sendFile(QString &fileName);
-	void sendManifest();
-	QString id;
-	QString model;
-	QString version;
+	IoTServer &server;
 
 private slots:
-	void rx(void);
-	void disconnect(void);
-
+	void sslErrors(const QList<QSslError> &errors);
 };
 
-#endif /* CLIENT_H_ */
+Q_DECLARE_METATYPE(qintptr);
+
+#endif // IOTSERVERWORKER_H

@@ -26,7 +26,7 @@
   POSSIBILITY OF SUCH DAMAGE.
 ---------------------------------------------------------------------------------------------------
    Project name : IoT Tracker Server
-   File name    : client.cpp
+   File name    : iotclient.cpp
    Created      : 01 June 2015
    Author(s)    : Jonathan Bagg
 ---------------------------------------------------------------------------------------------------
@@ -36,16 +36,16 @@
 #include <QByteArray>
 #include <QFile>
 #include <QMutexLocker>
-#include "client.h"
-#include "sslserver.h"
+#include "iotclient.h"
+#include "iotserver.h"
 
-Client::Client(SslServerWorker &parent, QSslSocket *newConnection, SslServer &server) : server(server), serverWorker(parent), socket(newConnection)
+IotClient::IotClient(IoTServerWorker &parent, QSslSocket *newConnection, IoTServer &server) : server(server), serverWorker(parent), socket(newConnection)
 {
-	connect(socket, &QSslSocket::readyRead, this, &Client::rx);
-	connect(socket, &QSslSocket::disconnected, this, &Client::disconnect);
+	connect(socket, &QSslSocket::readyRead, this, &IotClient::rx);
+	connect(socket, &QSslSocket::disconnected, this, &IotClient::disconnect);
 }
 
-void Client::rx(void)
+void IotClient::rx(void)
 {
 	while (socket->canReadLine()) {
 		QString line = socket->readLine();	// fixme set read size limit?
@@ -72,7 +72,7 @@ void Client::rx(void)
 
 }
 
-void Client::reportBoot()
+void IotClient::reportBoot()
 {
 	Record *record;
 	size_t idn = static_cast<size_t>(id.toInt());
@@ -94,7 +94,7 @@ void Client::reportBoot()
 	record->version = version;
 }
 
-void Client::report24hrs()
+void IotClient::report24hrs()
 {
 	Record *record;
 	size_t idn = static_cast<size_t>(id.toInt());
@@ -114,13 +114,13 @@ void Client::report24hrs()
 	record->version = version;
 }
 
-void Client::disconnect(void)
+void IotClient::disconnect(void)
 {
 	socket->deleteLater();
 	delete this;	
 }
 
-void Client::sendFile(QString &fileName)
+void IotClient::sendFile(QString &fileName)
 {
 	QFile file("files/" + fileName);
 	if (file.open(QIODevice::ReadOnly)) {
@@ -132,7 +132,7 @@ void Client::sendFile(QString &fileName)
 	file.close();
 }
 
-void Client::sendManifest()
+void IotClient::sendManifest()
 {
 	QFile file("files/manifest");
 	if (file.open(QIODevice::ReadOnly)) {
