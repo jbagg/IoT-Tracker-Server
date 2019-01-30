@@ -54,12 +54,18 @@ void mainWindow::buildGui(void)
 {
 	mainLayout.addWidget(&cpsLabel);
 	mainLayout.addLayout(&reportLayout);
-	reportLayout.addWidget(&modelArea);
-	reportLayout.addWidget(&versionArea);
+	reportLayout.addLayout(&modelsLayout);
+	reportLayout.addLayout(&versionsLayout);
+	modelsLayout.addWidget(&modelsLabel);
+	modelsLayout.addWidget(&modelArea);
+	versionsLayout.addWidget(&versionsLabel);
+	versionsLayout.addWidget(&versionArea);
 
 	reportLayout.setLayoutDirections(QBoxLayout::LeftToRight, QBoxLayout::TopToBottom);
 
 	cpsLabel.setText("CPS: ?");
+	modelsLabel.setText("Models:");
+	versionsLabel.setText("Versions:");
 	modelArea.setReadOnly(1);
 	versionArea.setReadOnly(1);
 

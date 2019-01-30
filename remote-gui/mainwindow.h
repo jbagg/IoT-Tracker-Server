@@ -66,7 +66,11 @@ private:
 	// GUI
 	QVBoxLayout mainLayout;
 	DualBoxLayout reportLayout;
+	QVBoxLayout modelsLayout;
+	QVBoxLayout versionsLayout;
 	QLabel cpsLabel;
+	QLabel modelsLabel;
+	QLabel versionsLabel;
 	QPlainTextEdit versionArea;
 	QPlainTextEdit modelArea;
 
