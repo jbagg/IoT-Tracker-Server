@@ -46,25 +46,29 @@ void IoTServerWorker::newConnection(qintptr socketDescriptor)
 	QSslSocket *sslSocket = new QSslSocket(this);
 
 	sslSocket->setSocketDescriptor(socketDescriptor);
-#ifdef ENABLE_ENCRYPTION
+	#ifdef ENABLE_ENCRYPTION
 	connect(sslSocket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
 	sslSocket->setPrivateKey(server.key);
 	sslSocket->setLocalCertificate(server.cert);
 	sslSocket->addCaCertificates("blue_ca.pem");
-#ifdef ENABLE_AUTHENTICATION
+	#ifdef ENABLE_AUTHENTICATION
 	sslSocket->setPeerVerifyMode(QSslSocket::VerifyPeer);
-#else
+	#else
 	sslSocket->setPeerVerifyMode(QSslSocket::VerifyNone);
-#endif
+	#endif
 	sslSocket->startServerEncryption();
-#endif
+	#endif
 
 	new IotClient(*this, sslSocket, server);
 }
 
 void IoTServerWorker::sslErrors(const QList<QSslError> &errors)
 {
-	foreach (const QSslError &error, errors) {
+	#ifdef ENABLE_AUTHENTICATION
+	foreach (const QSslError &error, errors)
 		qDebug() << error.errorString();
-	}
+	#else
+	QSslSocket* sslSocket = qobject_cast<QSslSocket*>(sender());
+	sslSocket->ignoreSslErrors(errors);
+	#endif
 }

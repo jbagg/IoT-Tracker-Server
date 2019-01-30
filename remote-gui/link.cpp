@@ -37,27 +37,36 @@
 #include <QSslCertificate>
 #include "link.h"
 
+#define ENCRYPTED_LINK
+//#define IOT_SERVER_NEEDS_REMOTE_MONITOR_AUTHENTICATION
+
 Link::Link()
 {
 	connect(&server, SIGNAL(readyRead()), this, SLOT(rx()));
 	connect(&server, SIGNAL(disconnected()), this, SLOT(srvDisconnect()));
 
+	#ifdef IOT_SERVER_NEEDS_REMOTE_MONITOR_AUTHENTICATION
 	// https://dst.lbl.gov/~boverhof/openssl_certs.html        // add -days 31000
 	// this client certificate is requested by the server and validated against the CA certificate in the server
+	// fixme - add some keys
 	QByteArray keyArray("");
 	server.setPrivateKey(QSslKey(keyArray, QSsl::Rsa));
 
 	QByteArray certArray("");
 	server.setLocalCertificate(QSslCertificate(certArray));
+	#endif
 }
 
 bool Link::srvConnect(const QString &host, size_t port)
 {
 	server.setPeerVerifyMode(QSslSocket::VerifyNone);
+	#ifdef ENCRYPTED_LINK
 	server.connectToHostEncrypted(host, port);
-	//server.connectToHost("127.0.0.1", port);
 	if (server.waitForEncrypted(5000)) {
-		//fixme - do somthing
+	#else
+	server.connectToHost(host, port);
+	if (server.waitForConnected(5000)) {
+	#endif
 		return 1;
 	}
 	else

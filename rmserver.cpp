@@ -61,24 +61,33 @@ void RemoteMonitorServer::incomingConnection(qintptr socketDescriptor)
 	RemoteMonitorClient *client;
 	QSslSocket *sslSocket = new QSslSocket(this);
 
-	connect(sslSocket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
 	sslSocket->setSocketDescriptor(socketDescriptor);
+	#ifdef ENABLE_RM_ENCRYPTION
+	connect(sslSocket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
 	sslSocket->setPrivateKey(key);
 	sslSocket->setLocalCertificate(cert);
 	sslSocket->setCaCertificates(caCert);
+	#ifdef ENABLE_RM_AUTHENTICATION
+	sslSocket->setPeerVerifyMode(QSslSocket::VerifyPeer);
+	#else
 	sslSocket->setPeerVerifyMode(QSslSocket::VerifyNone);
+	#endif
 	sslSocket->startServerEncryption();
+	#endif
 
-	//addPendingConnection(sslSocket);
 	client = new RemoteMonitorClient(sslSocket, *this);
 	clients.append(client);
 }
 
 void RemoteMonitorServer::sslErrors(const QList<QSslError> &errors)
 {
-	foreach (const QSslError &error, errors) {
+	#ifdef ENABLE_RM_AUTHENTICATION
+	foreach (const QSslError &error, errors)
 		qDebug() << error.errorString();
-	}
+	#else
+	QSslSocket* sslSocket = qobject_cast<QSslSocket*>(sender());
+	sslSocket->ignoreSslErrors(errors);
+	#endif
 }
 
 void RemoteMonitorServer::updateClientsCPS(ssize_t cps)
