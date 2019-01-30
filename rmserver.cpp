@@ -90,9 +90,9 @@ void RemoteMonitorServer::sslErrors(const QList<QSslError> &errors)
 	#endif
 }
 
-void RemoteMonitorServer::updateClientsCPS(ssize_t cps)
+void RemoteMonitorServer::updateClientsCPS(ssize_t cps, ssize_t totalDevices)
 {
-	QByteArray cpsValue = QString("cps=%1\n").arg(cps).toUtf8();
+	QByteArray cpsValue = QString("cps=%1\ntotal_devices=%2\n").arg(cps).arg(totalDevices).toUtf8();
 
 	foreach (RemoteMonitorClient *client, clients)
 		client->write(cpsValue);

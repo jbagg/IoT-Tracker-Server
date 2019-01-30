@@ -77,8 +77,7 @@ IoTServer::IoTServer(QObject *parent) : QTcpServer(parent)
 
 void IoTServer::measure()
 {
-	qDebug() << serves << records.size();
-	rmServer->updateClientsCPS(serves);
+	rmServer->updateClientsCPS(serves, records.size());
 	serves = 0;
 }
 

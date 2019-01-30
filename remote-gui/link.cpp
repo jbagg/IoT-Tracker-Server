@@ -97,6 +97,9 @@ void Link::rx(void)
 			if (cmd == "cps") {
 				emit updateCps(value);
 			}
+			else if (cmd == "total_devices") {
+				emit updateTotalDevices(value);
+			}
 			else if (cmd == "update") {
 				binaryLength = value.toInt();	// fixme set binary size limit?
 				binaryMode = true;

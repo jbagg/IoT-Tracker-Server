@@ -54,7 +54,7 @@ class RemoteMonitorServer : public QTcpServer
 public:
 	RemoteMonitorServer(QObject *parent = nullptr);
 	inline void removeClient(RemoteMonitorClient *client) {clients.removeAt(clients.indexOf(client));}
-	void updateClientsCPS(ssize_t cps);
+	void updateClientsCPS(ssize_t cps, ssize_t totalDevices);
 	void updateClients(QByteArray jsonDoc);
 
 private:

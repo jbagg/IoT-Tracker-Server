@@ -55,6 +55,7 @@ private:
 Q_SIGNALS:
 	void disconnected(void);
 	void updateCps(const QString &cps);
+	void updateTotalDevices(const QString &cps);
 	void update(QByteArray const &jsonData);
 
 private slots:

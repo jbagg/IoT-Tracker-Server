@@ -54,6 +54,7 @@ public:
 
 public slots:
 	void updateCps(const QString &cps);
+	void updateTotalDevices(const QString &cps) { totalDevicesLabel.setText(QString("Total Devices: %1").arg(cps.trimmed())); }
 	void update(const QByteArray &data);
 
 private:
@@ -69,6 +70,7 @@ private:
 	QVBoxLayout modelsLayout;
 	QVBoxLayout versionsLayout;
 	QLabel cpsLabel;
+	QLabel totalDevicesLabel;
 	QLabel modelsLabel;
 	QLabel versionsLabel;
 	QPlainTextEdit versionArea;

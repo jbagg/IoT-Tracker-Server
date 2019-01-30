@@ -45,6 +45,7 @@ mainWindow::mainWindow()
 
 	connect(&link, &Link::disconnected, this, &mainWindow::srvDisconnect);
 	connect(&link, &Link::updateCps, this, &mainWindow::updateCps);
+	connect(&link, &Link::updateTotalDevices, this, &mainWindow::updateTotalDevices);
 	connect(&link, &Link::update, this, &mainWindow::update);
 
 	discover->start();
@@ -53,6 +54,7 @@ mainWindow::mainWindow()
 void mainWindow::buildGui(void)
 {
 	mainLayout.addWidget(&cpsLabel);
+	mainLayout.addWidget(&totalDevicesLabel);
 	mainLayout.addLayout(&reportLayout);
 	reportLayout.addLayout(&modelsLayout);
 	reportLayout.addLayout(&versionsLayout);
@@ -64,6 +66,7 @@ void mainWindow::buildGui(void)
 	reportLayout.setLayoutDirections(QBoxLayout::LeftToRight, QBoxLayout::TopToBottom);
 
 	cpsLabel.setText("CPS: ?");
+	totalDevicesLabel.setText("Total Devices: ?");
 	modelsLabel.setText("Models:");
 	versionsLabel.setText("Versions:");
 	modelArea.setReadOnly(1);
