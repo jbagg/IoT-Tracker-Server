@@ -34,11 +34,14 @@
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
 #include <QSslSocket>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include "iotserver.h"
 
 IoTServer::IoTServer(QObject *parent) : QTcpServer(parent)
 {
 	dispatchId = 0;
+	countMetricsStart = true;
 	qRegisterMetaType<qintptr>("qintptr");
 
 	QFile keyFile("red_local.key");
@@ -67,7 +70,9 @@ IoTServer::IoTServer(QObject *parent) : QTcpServer(parent)
 	rmServer = new RemoteMonitorServer();
 
 	connect(&oneSec, &QTimer::timeout, this, &IoTServer::measure);
+	connect(&periodicWorkTimer, &QTimer::timeout, this, &IoTServer::countMetrics);
 	oneSec.start(1000);
+	periodicWorkTimer.start(PERIODIC_WORK_TICK_TIME);
 }
 
 void IoTServer::measure()
@@ -84,5 +89,67 @@ void IoTServer::incomingConnection(qintptr socketDescriptor)
 	dispatchId++;
 	if (dispatchId >= THREADS)
 		dispatchId = 0;
+}
+
+void IoTServer::countMetrics()
+{
+	size_t i;
+
+	if (records.isEmpty())
+		return;
+
+	if (!recordLocker.tryLock(0))  // use tryLock() to keep this thread free to handle incoming connections.
+		return;
+	if (countMetricsStart) {
+		countMetricsStart = false;
+		models.clear();
+		versions.clear();
+		rec = records.begin();
+	}
+
+	i=0;
+	// only do a small number of records per periodic work tick so this thread is free to handle incoming connections.
+	while (i<RECORDS_PER_PERIODIC_TICK && rec != records.end()) {
+		// count models
+		if (models.contains((*rec)->model))
+			models[(*rec)->model]++;
+		else
+			models.insert((*rec)->model, 1);
+
+		//count versions
+		if (versions.contains((*rec)->version))
+			versions[(*rec)->version]++;
+		else
+			versions.insert((*rec)->version, 1);
+
+		i++;
+		rec++;
+	}
+
+	if (rec == records.end())
+		countMetricsStart = true;
+
+	recordLocker.unlock();
+
+	if (countMetricsStart)
+		buildJsonDoc();
+}
+
+void IoTServer::buildJsonDoc()
+{
+	QMap<QString, size_t>::iterator i;
+	QJsonObject jObject, jModels, jVersions;
+
+	for (i = models.begin(); i != models.end(); i++)
+		jModels.insert(i.key(), QJsonValue::fromVariant(QString("%1").arg(i.value())));
+
+	for (i = versions.begin(); i != versions.end(); i++)
+		jVersions.insert(i.key(), QJsonValue::fromVariant(QString("%1").arg(i.value(), 0, 10)));
+
+	jObject.insert("models", jModels);
+	jObject.insert("versions", jVersions);
+
+	QJsonDocument jDoc(jObject);
+	rmServer->updateClients(jDoc.toJson());
 }
 

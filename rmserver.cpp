@@ -88,3 +88,11 @@ void RemoteMonitorServer::updateClientsCPS(ssize_t cps)
 	foreach (RemoteMonitorClient *client, clients)
 		client->write(cpsValue);
 }
+
+void RemoteMonitorServer::updateClients(QByteArray jsonDoc)
+{
+	foreach (RemoteMonitorClient *client, clients) {
+		client->write(QString("update=%1\n").arg(jsonDoc.size(), 0, 10).toUtf8());
+		client->write(jsonDoc);
+	}
+}

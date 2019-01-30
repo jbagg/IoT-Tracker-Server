@@ -70,10 +70,19 @@ private:
 	RemoteMonitorServer *rmServer;
 	size_t dispatchId;
 	QTimer oneSec;
+	QTimer periodicWorkTimer;
 	int32_t serves;
+
+	// Metrics compilation
+	void buildJsonDoc();
+	QMap <QString, size_t> versions;
+	QMap <QString, size_t> models;
+	QHash <size_t, Record*>::iterator rec;
+	bool countMetricsStart;
 
 private slots:
 	void measure();
+	void countMetrics();
 
 protected:
 	void incomingConnection(qintptr socketDescriptor);

@@ -33,13 +33,9 @@
    Main Window
 ---------------------------------------------------------------------------------------------------
 **************************************************************************************************/
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QGridLayout>
 #include <QMessageBox>
-#include <QDate>
-#include <QCryptographicHash>
-#include <QDesktopWidget>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include "mainwindow.h"
 
 mainWindow::mainWindow()
@@ -97,8 +93,32 @@ void mainWindow::updateCps(const QString &cps)
 	cpsLabel.setText(QString("CPS: %1").arg(cps.trimmed()));
 }
 
-void mainWindow::update(QByteArray const &jsonModelData)
+void mainWindow::update(const QByteArray &data)
 {
-	//modelArea.setPlainText("This Cow is cool\nBob is a Dog");
-	//versionArea.setPlainText("This Cow is cool\nBob is a Dog");
+	QJsonObject::iterator it;
+	QString modelText;
+	QString versionText;
+
+	QJsonDocument jDoc(QJsonDocument::fromJson(data));
+	QJsonObject jModels(jDoc.object().value("models").toObject());
+	QJsonObject jVersion(jDoc.object().value("versions").toObject());
+
+	for (it = jModels.begin(); it != jModels.end(); it++) {
+		QString space(10 - it.key().size(), QChar(' '));
+		modelText.append(it.key());
+		modelText.append(space);
+		modelText.append(it.value().toString());
+		modelText.append('\n');
+	}
+
+	for (it = jVersion.begin(); it != jVersion.end(); it++) {
+		QString space(10 - it.key().size(), QChar(' '));
+		versionText.append(it.key());
+		versionText.append(space);
+		versionText.append(it.value().toString());
+		versionText.append('\n');
+	}
+
+	modelArea.setPlainText(modelText);
+	versionArea.setPlainText(versionText);
 }

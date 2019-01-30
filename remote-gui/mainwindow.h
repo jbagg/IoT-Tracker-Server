@@ -54,7 +54,7 @@ public:
 
 public slots:
 	void updateCps(const QString &cps);
-	void update(QByteArray const &jsonModelData);
+	void update(const QByteArray &data);
 
 private:
 	void buildGui(void);

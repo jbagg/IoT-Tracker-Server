@@ -55,6 +55,7 @@ public:
 	RemoteMonitorServer(QObject *parent = nullptr);
 	inline void removeClient(RemoteMonitorClient *client) {clients.removeAt(clients.indexOf(client));}
 	void updateClientsCPS(ssize_t cps);
+	void updateClients(QByteArray jsonDoc);
 
 private:
 	QZeroConf zeroConf;
