@@ -44,6 +44,7 @@
 #include <QSslSocket>
 #include <QThread>
 #include <QMutex>
+#include <QLinkedList>
 #include "global.h"
 #include "rmserver.h"
 #include "iotclient.h"
@@ -61,7 +62,13 @@ public:
 	QSslKey key;
 	QSslCertificate cert;
 	QList<QSslCertificate> caCert;
+	// records (QHash) is used for finding and updating records.  Lookup and insertion time is critical.
+	//   Lookup is constant amortized time "Amort. O(1)".  Worst case is O(n).
+	//   Insertion time is constant amortized time "Amort. O(1)".  Worst case is O(n).
 	QHash <size_t, Record*> records;
+	// recordList is used to build reports for the remote monitors.  No lookup are done, list read from begining to end.  Only insertion time is critical.
+	//   Insertion time is constatnt time O(1).
+	QLinkedList <Record*> recordList;
 	QMutex recordLocker;
 
 private:
@@ -77,7 +84,7 @@ private:
 	void buildJsonDoc();
 	QMap <QString, size_t> versions;
 	QMap <QString, size_t> models;
-	QHash <size_t, Record*>::iterator rec;
+	QLinkedList <Record*>::iterator rec;
 	bool countMetricsStart;
 
 private slots:

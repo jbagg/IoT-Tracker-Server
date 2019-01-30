@@ -86,6 +86,7 @@ void IotClient::reportBoot()
 		record->model = model;
 		record->lastBoot = QDateTime::currentDateTime();
 		server.records.insert(idn, record);
+		server.recordList.append(record);
 	}
 	else
 		record = server.records[idn];
@@ -106,6 +107,7 @@ void IotClient::report24hrs()
 		record->id = idn;
 		record->model = model;
 		server.records.insert(idn, record);
+		server.recordList.append(record);
 	}
 	else
 		record = server.records[idn];

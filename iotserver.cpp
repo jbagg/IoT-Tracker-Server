@@ -104,12 +104,12 @@ void IoTServer::countMetrics()
 		countMetricsStart = false;
 		models.clear();
 		versions.clear();
-		rec = records.begin();
+		rec = recordList.begin();
 	}
 
 	i=0;
 	// only do a small number of records per periodic work tick so this thread is free to handle incoming connections.
-	while (i<RECORDS_PER_PERIODIC_TICK && rec != records.end()) {
+	while (i<RECORDS_PER_PERIODIC_TICK && rec != recordList.end()) {
 		// count models
 		if (models.contains((*rec)->model))
 			models[(*rec)->model]++;
@@ -126,7 +126,7 @@ void IoTServer::countMetrics()
 		rec++;
 	}
 
-	if (rec == records.end())
+	if (rec == recordList.end())
 		countMetricsStart = true;
 
 	recordLocker.unlock();
