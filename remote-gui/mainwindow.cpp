@@ -63,7 +63,7 @@ void mainWindow::buildGui(void)
 	versionsLayout.addWidget(&versionsLabel);
 	versionsLayout.addWidget(&versionArea);
 
-	reportLayout.setLayoutDirections(QBoxLayout::LeftToRight, QBoxLayout::TopToBottom);
+	reportLayout.setLayoutDirections(QBoxLayout::TopToBottom, QBoxLayout::LeftToRight);
 
 	cpsLabel.setText("CPS: ?");
 	totalDevicesLabel.setText("Total Devices: ?");
