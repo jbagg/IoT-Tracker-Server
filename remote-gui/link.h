@@ -37,6 +37,10 @@
 #define LINK_H_
 
 #include <QSslSocket>
+#include <QTcpSocket>
+
+//#define ENCRYPTED_LINK
+//#define IOT_SERVER_NEEDS_REMOTE_MONITOR_AUTHENTICATION
 
 class Link : public QObject
 {
@@ -48,7 +52,11 @@ public:
 	void tx(QString cmd);
 
 private:
+	#ifdef ENCRYPTED_LINK
 	QSslSocket server;
+	#else
+	QTcpSocket server;
+	#endif
 	ssize_t binaryLength;
 	bool binaryMode;
 

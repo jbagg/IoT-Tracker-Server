@@ -37,9 +37,6 @@
 #include <QSslCertificate>
 #include "link.h"
 
-#define ENCRYPTED_LINK
-//#define IOT_SERVER_NEEDS_REMOTE_MONITOR_AUTHENTICATION
-
 Link::Link()
 {
 	connect(&server, SIGNAL(readyRead()), this, SLOT(rx()));
@@ -59,8 +56,8 @@ Link::Link()
 
 bool Link::srvConnect(const QString &host, size_t port)
 {
-	server.setPeerVerifyMode(QSslSocket::VerifyNone);
 	#ifdef ENCRYPTED_LINK
+	server.setPeerVerifyMode(QSslSocket::VerifyNone);
 	server.connectToHostEncrypted(host, port);
 	if (server.waitForEncrypted(5000)) {
 	#else
