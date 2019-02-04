@@ -38,6 +38,7 @@
 
 #include <QSslSocket>
 #include <QTcpSocket>
+#include <QtZeroConf/qzeroconf.h>
 
 //#define ENCRYPTED_LINK
 //#define IOT_SERVER_NEEDS_REMOTE_MONITOR_AUTHENTICATION
@@ -48,7 +49,7 @@ class Link : public QObject
 
 public:
 	Link();
-	bool srvConnect(const QString &host, size_t port);
+	bool srvConnect(QZeroConfService zcs);
 	void tx(QString cmd);
 
 private:

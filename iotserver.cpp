@@ -44,15 +44,22 @@ IoTServer::IoTServer(QObject *parent) : QTcpServer(parent)
 	countMetricsStart = true;
 	qRegisterMetaType<qintptr>("qintptr");
 
-	QFile keyFile("red_local.key");
+	QFile keyFile("iot_red_local.key");
 	keyFile.open(QIODevice::ReadOnly);
 	key = QSslKey(keyFile.readAll(), QSsl::Rsa);
 	keyFile.close();
 
-	QFile certFile("red_local.pem");
+	QFile certFile("iot_red_local.pem");
 	certFile.open(QIODevice::ReadOnly);
 	cert = QSslCertificate(certFile.readAll());
 	certFile.close();
+
+	#ifdef ENABLE_AUTHENTICATION
+	QFile caCertFile("iot_blue_ca.pem");
+	caCertFile.open(QIODevice::ReadOnly);
+	caCert << QSslCertificate(caCertFile.readAll());
+	caCertFile.close();
+	#endif
 
 	size_t i;
 	for (i=0; i<THREADS; i++)

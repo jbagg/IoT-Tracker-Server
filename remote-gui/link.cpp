@@ -43,25 +43,23 @@ Link::Link()
 	connect(&server, SIGNAL(disconnected()), this, SLOT(srvDisconnect()));
 
 	#ifdef IOT_SERVER_NEEDS_REMOTE_MONITOR_AUTHENTICATION
-	// https://dst.lbl.gov/~boverhof/openssl_certs.html        // add -days 31000
-	// this client certificate is requested by the server and validated against the CA certificate in the server
-	// fixme - add some keys
-	QByteArray keyArray("");
-	server.setPrivateKey(QSslKey(keyArray, QSsl::Rsa));
-
-	QByteArray certArray("");
-	server.setLocalCertificate(QSslCertificate(certArray));
+	server.setPrivateKey("rm_blue_local.key");
+	server.setLocalCertificate("rm_blue_local.pem");
+	if (server.localCertificate().isNull())
+		qDebug("No certificate for authentication");
+	if (server.privateKey().isNull())
+		qDebug("No private key for authentication");
 	#endif
 }
 
-bool Link::srvConnect(const QString &host, size_t port)
+bool Link::srvConnect(QZeroConfService zcs)
 {
 	#ifdef ENCRYPTED_LINK
 	server.setPeerVerifyMode(QSslSocket::VerifyNone);
-	server.connectToHostEncrypted(host, port);
+	server.connectToHostEncrypted(zcs->ip().toString(), zcs->port());
 	if (server.waitForEncrypted(5000)) {
 	#else
-	server.connectToHost(host, port);
+	server.connectToHost(zcs->ip().toString(), zcs->port());
 	if (server.waitForConnected(5000)) {
 	#endif
 		return 1;

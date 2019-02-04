@@ -69,7 +69,7 @@ void Discover::error(QZeroConf::error_t)
 void Discover::startLogin(QZeroConfService zcs)
 {
 	timeout.stop();
-	if (!link.srvConnect(zcs->ip().toString(), zcs->port())) {
+	if (!link.srvConnect(zcs)) {
 		msgbox.setText(tr("Connection to server failed - exiting"));
 		msgbox.exec();
 		exit(1);

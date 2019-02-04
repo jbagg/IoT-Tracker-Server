@@ -38,18 +38,25 @@
 
 RemoteMonitorServer::RemoteMonitorServer(QObject *parent) : QTcpServer(parent)
 {
-	QFile keyFile("red_local.key");
+	QFile keyFile("rm_red_local.key");
 	keyFile.open(QIODevice::ReadOnly);
 	key = QSslKey(keyFile.readAll(), QSsl::Rsa);
 	keyFile.close();
 
-	QFile certFile("red_local.pem");
+	QFile certFile("rm_red_local.pem");
 	certFile.open(QIODevice::ReadOnly);
 	cert = QSslCertificate(certFile.readAll());
 	certFile.close();
 
+	#ifdef ENABLE_RM_AUTHENTICATION
+	QFile caCertFile("rm_blue_ca.pem");
+	caCertFile.open(QIODevice::ReadOnly);
+	caCert << QSslCertificate(caCertFile.readAll());
+	caCertFile.close();
+	#endif
+
 	if (!listen(QHostAddress::Any, RM_PORT)) {
-		qCritical() << "Unable to start the TCP server";
+		qCritical() << "Unable to start the TCP server for remote monitors";
 		exit(1);
 	}
 
@@ -66,8 +73,8 @@ void RemoteMonitorServer::incomingConnection(qintptr socketDescriptor)
 	connect(sslSocket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
 	sslSocket->setPrivateKey(key);
 	sslSocket->setLocalCertificate(cert);
-	sslSocket->setCaCertificates(caCert);
 	#ifdef ENABLE_RM_AUTHENTICATION
+	sslSocket->setCaCertificates(caCert);
 	sslSocket->setPeerVerifyMode(QSslSocket::VerifyPeer);
 	#else
 	sslSocket->setPeerVerifyMode(QSslSocket::VerifyNone);

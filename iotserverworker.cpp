@@ -50,8 +50,8 @@ void IoTServerWorker::newConnection(qintptr socketDescriptor)
 	connect(sslSocket, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
 	sslSocket->setPrivateKey(server.key);
 	sslSocket->setLocalCertificate(server.cert);
-	sslSocket->addCaCertificates("blue_ca.pem");
 	#ifdef ENABLE_AUTHENTICATION
+	sslSocket->setCaCertificates(server.caCert);
 	sslSocket->setPeerVerifyMode(QSslSocket::VerifyPeer);
 	#else
 	sslSocket->setPeerVerifyMode(QSslSocket::VerifyNone);
