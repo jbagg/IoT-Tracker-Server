@@ -69,7 +69,6 @@ void IotClient::rx(void)
 		else
 			qDebug() << cmd;
 	}
-
 }
 
 void IotClient::reportBoot()
@@ -120,28 +119,4 @@ void IotClient::disconnect(void)
 {
 	socket->deleteLater();
 	delete this;	
-}
-
-void IotClient::sendFile(QString &fileName)
-{
-	QFile file("files/" + fileName);
-	if (file.open(QIODevice::ReadOnly)) {
-		socket->write(QString("file=%1\n").arg(file.size(), 0, 10).toUtf8());
-		socket->write(file.readAll());
-	}
-	else
-		socket->write("no_file\n");
-	file.close();
-}
-
-void IotClient::sendManifest()
-{
-	QFile file("files/manifest");
-	if (file.open(QIODevice::ReadOnly)) {
-		socket->write(QString("manifest=%1\n").arg(file.size(), 0, 10).toUtf8());
-		socket->write(file.readAll());
-	}
-	else
-		socket->write("no_manifest\n");
-	file.close();
 }

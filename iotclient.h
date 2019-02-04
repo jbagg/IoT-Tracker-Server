@@ -56,8 +56,6 @@ private:
 	IoTServer &server;
 	IoTServerWorker &serverWorker;
 	QSslSocket *socket;
-	void sendFile(QString &fileName);
-	void sendManifest();
 	QString id;
 	QString model;
 	QString version;
